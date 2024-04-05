@@ -3,17 +3,108 @@
 
 <h1>Anime Details</h1>
 
-  <div class="card">
-      <div class="card-content">
-        <span class="card-title">{{ anime.title }}</span>
-        <p>Genre {{ anime.genre }}</p>
-        <p>Description: {{ anime.description|linebreaks }}</p>
-        <p>Rate: {{ anime.rate }}</p>
+<div class="row">
+    <div class="col s6">
+
+          <!-- New Markup Above -->
+
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title">{{ anime.title }}</span>
+                <p>Genre {{ anime.genre }}</p>
+                <p>Description: {{ anime.description|linebreaks }}</p>
+                <p>Rate: {{ anime.rate }}</p>
+            </div>
+            <div class="card-action">
+                <a href="{% url 'animes_update' anime.id %}">Edit</a>
+                <a href="{% url 'animes_delete' anime.id %}">Delete</a>
+            </div>
+        </div>
+    </div>
+    <div class="col s6">
+        <form action="{% url 'add_phasing' anime.id %}" method="POST">
+            {% csrf_token %}
+            <!-- Render the inputs -->
+            {{ phasing_form.as_p }}
+            <input type="submit" class="btn" value="Add Phasing">
+        </form>        
+    <br>
+        <table class="striped">
+          <thead>
+            <tr><th>Date</th>
+                <th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for phasing in anime.phasing_set.all %}
+              <tr>
+                <td>{{phasing.date}}</td>
+                <td>{{phasing.get_status_display}}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-      <div class="card-action">
-        <a href="{% url 'animes_update' anime.id %}">Edit</a>
-        <a href="{% url 'animes_delete' anime.id %}">Delete</a>
-      </div>
+</div>
+  <!-- Available toys will come after this line -->
+  <div class="col s6">
+    <h3>{{ anime.title }}'s Streamer</h3>
+    {% if anime.streamer.count %}
+      {% for stream in anime.streamer.all %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+             {{ stream.name }}
+            </span>
+          </div>
+          <div class="card-action">
+            <form action="{% url 'unassoc_streamer' anime.id stream.id %}" method="POST">
+              {% csrf_token %}
+              <button type="submit" class="btn">Remove</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <h5>{{anime.title}} Thank you for you review!</h5>
+    {% endif %}
   </div>
+</div>
+
+<div class="col s6">
+    <h3>Available Streamer</h3>
+    {% if streamer.count %}
+      {% for stream in streamer.all %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+             {{ stream.name }}
+            </span>
+          </div>
+          <div class="card-action">
+            <form action="{% url 'assoc_streamer' anime.id stream.id %}" method="POST">
+              {% csrf_token %}
+              <button type="submit" class="btn">Add</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <h5>{{anime.title}} Already add all stream</h5>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+    const dateEl = document.getElementById('id_date');
+    M.Datepicker.init(dateEl, {
+      format: 'yyyy-mm-dd',
+      defaultDate: new Date(),
+      setDefaultDate: true,
+      autoClose: true
+    });
+
+    const selectEl = document.getElementById('id_status')
+    M.FormSelect.init(selectEl)
+  </script>
 
 {% endblock %}
